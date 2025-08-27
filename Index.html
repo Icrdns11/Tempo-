@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrónomo Tap (Responsivo)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box; /* Incluye padding en el cálculo de ancho y alto */
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%; /* Ancho responsivo */
+            max-width: 500px; /* Ancho máximo para pantallas grandes */
+        }
+        #tap-area {
+            width: 100%; /* Ocupa todo el ancho disponible */
+            padding-top: 66.67%; /* Mantiene una relación de aspecto de 3:2 (alto/ancho) */
+            position: relative;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 1.5em;
+            user-select: none;
+            transition: background-color 0.2s ease;
+            box-sizing: border-box;
+            overflow: hidden; /* Evita que el texto se salga */
+        }
+        #tap-area .tap-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%; /* Evita que el texto se pegue a los bordes */
+        }
+        #tap-area:active {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        #history {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #history p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+        #reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #dc3545;
+            color: white;
+        }
+
+        /* Reglas para pantallas más pequeñas (móviles) */
+        @media (max-width: 600px) {
+            body {
+                align-items: stretch;
+            }
+            .container {
+                width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+                padding: 1em;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            #results {
+                font-size: 1.5em;
+            }
+            #tap-area {
+                font-size: 1.2em;
+            }
+            #reset-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Metrónomo Tap</h1>
+    <div id="tap-area">
+        <span class="tap-text">Haz clic aquí para marcar el tempo</span>
+    </div>
+    <div id="results">
+        BPM Promedio: 0
+    </div>
+    <button id="reset-button">Reiniciar</button>
+
+    <h3>BPM de cada Intervalo</h3>
+    <div id="history">
+        </div>
+</div>
+
+<script>
+    const tapArea = document.getElementById('tap-area');
+    const resultsDiv = document.getElementById('results');
+    const historyDiv = document.getElementById('history');
+    const resetButton = document.getElementById('reset-button');
+
+    let clicks = [];
+    const maxClicks = 10;
+
+    function calculateAverageBPM() {
+        if (clicks.length < 2) {
+            return 0;
+        }
+        let totalTime = 0;
+        for (let i = 1; i < clicks.length; i++) {
+            totalTime += clicks[i] - clicks[i - 1];
+        }
+        const avgTime = totalTime / (clicks.length - 1);
+        const bpm = 60000 / avgTime;
+        return bpm.toFixed(2);
+    }
+
+    function handleTap() {
+        const currentTime = new Date().getTime();
+        clicks.push(currentTime);
+
+        if (clicks.length > maxClicks) {
+            clicks.shift();
+        }
+        
+        if (clicks.length >= 2) {
+            const lastTimeDiff = clicks[clicks.length - 1] - clicks[clicks.length - 2];
+            const lastBPM = (60000 / lastTimeDiff).toFixed(2);
+            
+            const p = document.createElement('p');
+            p.textContent = `BPM Intervalo: ${lastBPM}`;
+            historyDiv.prepend(p);
+
+            const averageBPM = calculateAverageBPM();
+            resultsDiv.textContent = `BPM Promedio: ${averageBPM}`;
+        } else {
+            resultsDiv.textContent = `BPM Promedio: --`;
+        }
+    }
+
+    function resetMetronome() {
+        clicks = [];
+        resultsDiv.textContent = 'BPM Promedio: 0';
+        historyDiv.innerHTML = '';
+    }
+
+    tapArea.addEventListener('click', handleTap);
+    resetButton.addEventListener('click', resetMetronome);
+</script>
+
+</body>
+</html>
